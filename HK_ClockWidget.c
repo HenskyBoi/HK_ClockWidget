@@ -2,11 +2,11 @@
 * HK_ClockWidget.c
 ===============================================================================
 * Author: Henry King
-* Version: Alpha 1.0.0
+* Version: Alpha 1.0.1
 * Release Date: 7/29/2025
 =============================================================================*/
 
-#include 'HK_ClockWidget.h'
+#include "HK_ClockWidget.h"
 
 /*=============================================================================
 *   wWinMain [int]
@@ -18,11 +18,11 @@
 *       int nCmdShow           Controls how the window is to be shown.
 *
 =============================================================================*/
-int PSCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpszCmdLine, int nCmdShow)
+int PASCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpszCmdLine, int nCmdShow)
 {
   HWND hwnd;
   MSG msg;
-  const wchar_t* CLASS_NAME = L'MainWindow';
+  const wchar_t* CLASS_NAME = L"MainWindow";
   static WNDCLASSEXW wc = {0};
 
   //Set each member of the WNDCLASSEXW struct...
@@ -48,7 +48,7 @@ int PSCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpszC
     if(!RegisterClassEx(&wc))
     {
       //This should never happen, but we inform the user and return gracefully in case it does.
-      MessageBoxW(NULL, L'Window Registration Failed', L'Error', MB_ICOERROR | MB_OK);
+      MessageBoxW(NULL, L"Window Registration Failed", L"Error", MB_ICONERROR | MB_OK);
       return -1;
     }
   }
@@ -57,8 +57,8 @@ int PSCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpszC
   (
     0,                      //dwExStyle
     CLASS_NAME,             //lpClassName
-    L'HK_CLockWidget',      //lpWindowName (title bar text)
-    WS_OVERLAPPERDWINDOW,   //dwStyle
+    L"HK_CLockWidget",      //lpWindowName (title bar text)
+    WS_OVERLAPPEDWINDOW,    //dwStyle
     CW_USEDEFAULT,          //X position
     CW_USEDEFAULT,          //Y position
     WINDOW_WIDTH,           //nWidth
@@ -66,13 +66,13 @@ int PSCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpszC
     NULL,                   //hWndParent
     NULL,                   //hMenu (use this to set a menu bar)
     hInstance,              //hInstance
-    NULL,                   //lpParam
+    NULL                    //lpParam
   );
 
   if (hwnd == NULL)
   {
     //Again, this should never happen suince we just created hWnd, but just in case, inform the user and return gracefully.
-    MessageBoxW(NULL, L'Window Creation Failed!', L'Erroe', MB_ICONEXCLAMATION | MB_OK);
+    MessageBoxW(NULL, L"Window Creation Failed!", L"Error", MB_ICONEXCLAMATION | MB_OK);
     return -1;
   }
 
@@ -96,15 +96,15 @@ int PSCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpszC
 *       LPARAM lParam           Msg data - usually comples (32/64 bits)
 *
 =============================================================================*/
-LRESULT WINAPI WindowProc(HWND hwnd, UNIT msg, WPARAM wParam, LPARAM lParam)
+LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   HDC hdc;
   PAINTSTRUCT ps;
 
   //It's usually helppful to have a static RECT to hold the clientRect (the size of the window)
-  static RECT clentRect;
+  static RECT clientRect;
   RECT textRect = (RECT) {0, 0, clientRect.right, 25};
-  wchar_t text[] = L'12:00pm';
+  wchar_t text[] = L"12:00pm";
   size_t textLength = sizeof(text)/sizeof(text[0]);
 
   switch(msg)
@@ -126,12 +126,12 @@ LRESULT WINAPI WindowProc(HWND hwnd, UNIT msg, WPARAM wParam, LPARAM lParam)
     }
     case WM_PAINT:
     {
-      hdc = BeginPain(hwnd, &ps));
+      hdc = BeginPaint(hwnd, &ps);
       //Fill the window background with a default gray color
-      FillRect(hdc, &ps.rcPain, (HBRUSH) (COLOR_WINDOW+1));
-      DrawTextW(hdc, text, textLength, &textRect, DT_Center);
+      FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
+      DrawTextW(hdc, text, textLength, &textRect, DT_CENTER);
       EndPaint(hwnd, &ps);
-      break:
+      break;
     }
   }
   return DefWindowProc(hwnd, msg, wParam, lParam);
