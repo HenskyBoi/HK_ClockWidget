@@ -5,9 +5,9 @@ CXXFLAGS = -mwindows -municode -static
 # Libraries
 LIBS =
 # Source files
-SRCS = hellowin.c
+SRCS = HK_ClockWidget.c
 # Output executable
-TARGET = win.exe
+TARGET = HK_ClockWidget.exe
 
 # Build target
 $(TARGET): $(SRCS)
