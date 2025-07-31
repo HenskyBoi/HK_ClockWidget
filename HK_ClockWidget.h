@@ -2,11 +2,12 @@
 * HK_ClockWidget.h
 ===============================================================================
 * Author: Henry King
-* Version: 1.0
-* Release Date: 7/28/2025
+* Version: 1.1
+* Release Date: 7/31/2025
 =============================================================================*/
 
 #include <windows.h> //The Win32 API
+#include <windowsx.h> //Windows Macros
 
 /*=============================================================================
 * Preprocessor Directives
@@ -17,8 +18,8 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 120
 
 /*=============================================================================
 * Function Prototypes

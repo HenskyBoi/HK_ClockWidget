@@ -2,11 +2,14 @@
 * HK_ClockWidget.c
 ===============================================================================
 * Author: Henry King
-* Version: Beta 1.0
-* Release Date: 7/30/2025
+* Version: Beta 2.0
+* Release Date: 7/31/2025
 =============================================================================*/
 
 #include "HK_ClockWidget.h"
+
+//Define a constant for the menu item ID
+#define IDM_CLOSE_APP 1001
 
 /*=============================================================================
 *   wWinMain [int]
@@ -58,7 +61,7 @@ int PASCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpsz
 		0,                      //dwExStyle
 		CLASS_NAME,             //lpClassName
 		L"HK_CLockWidget",      //lpWindowName (title bar text)
-		WS_OVERLAPPEDWINDOW,    //dwStyle
+		WS_POPUP,               //dwStyle
 		CW_USEDEFAULT,          //X position
 		CW_USEDEFAULT,          //Y position
 		WINDOW_WIDTH,           //nWidth
@@ -121,6 +124,45 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			InvalidateRect(hwnd, NULL, TRUE);
 			break;
 		}
+		case WM_CONTEXTMENU:
+		{
+			//Create a popup menu
+			HMENU hMenu = CreatePopupMenu();
+			if (hMenu)
+			{
+				//Add "Close" menu item
+				AppendMenuW(hMenu, MF_STRING, IDM_CLOSE_APP, L"Close");
+				
+				//Get the cursor position from lParam (screen coordinates)
+				int x = GET_X_LPARAM(lParam);
+				int y = GET_Y_LPARAM(lParam);
+				
+				//Display the menu at the cursor position
+				TrackPopupMenu(hMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, x, y, 0, hwnd, NULL);
+				
+				//Destroy the menu to free resources
+				DestroyMenu(hMenu);
+			}
+			break;
+		}
+		case WM_COMMAND:
+		{
+			//Handle menu item selection
+			switch (LOWORD(wParam))
+			{
+				case IDM_CLOSE_APP:
+					//Post WM_CLOSE to close the application
+					PostMessage(hwnd, WM_CLOSE, 0, 0);
+					break;
+			}
+			break;
+		}
+		case WM_LBUTTONDOWN:
+		{
+			//Initiate window dragging by simulating a title bar click
+			SendMessage(hwnd, WM_NCLBUTTONDOWN, HTCAPTION, lParam);
+			break;
+		}
 		case WM_DESTROY:
 		{
 			//Stops the timer
@@ -135,17 +177,51 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Fill the window background with a default gray color
 			FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
 			
+			//All this handles the font
+			HFONT hFont = CreateFontW
+			(
+				60,                              //Height in logical units (approx. point size)
+				0,                               //Width (0 for default)
+				0,                               //Escapement
+				0,                               //Orientation
+				FW_NORMAL,                       //Weight (normal, not bold)
+				FALSE,                           //Italic
+				FALSE,                           //Underline
+				FALSE,                           //Strikeout
+				DEFAULT_CHARSET,                 //Character set
+				OUT_DEFAULT_PRECIS,              //Output precision
+				CLIP_DEFAULT_PRECIS,             //Clipping percision
+				DEFAULT_QUALITY,                 //Quality
+				DEFAULT_PITCH | FF_DONTCARE,     //Pitch and family
+				L"Arial"                         //Font name
+			);
+			
+			//Select the font into the device context and save the original font
+			HFONT hOldFont = (HFONT)SelectObject(hdc, hFont);
+			
 			//Define a buffer for the time string
-			wchar_t text[20];
+			wchar_t timeText[25];
+			wchar_t dateText[50]; //Larger buffer to accommodate for longer format
 			SYSTEMTIME st;
 			GetLocalTime(&st);
+			
 			//Format the time as "hh:mm:ss tt" (e.g., "12:00:00 PM")
-			GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"hh:mm:ss tt", text, sizeof(text)/sizeof(wchar_t));
+			GetTimeFormatW(LOCALE_USER_DEFAULT, 0, &st, L"hh:mm:ss tt", timeText, sizeof(timeText)/sizeof(wchar_t));
+			
+			//Format the date as "Day, Month Date, Year" (e.g., "Thursday, July 31, 2025")
+			GetDateFormatW(LOCALE_USER_DEFAULT, 0, &st, L"dddd, MMMM dd, yyyy", dateText, sizeof(dateText)/sizeof(wchar_t));
 			
 			//Define the text rectangle based on the client area
-			RECT textRect = {0, 0, clientRect.right, 25};
+			RECT timeRect = {0, 0, clientRect.right, 120};
+			RECT dateRect = {0, 50, clientRect.right, 120};
+			
 			//Draw the time centered in the rectangle
-			DrawTextW(hdc, text, -1, &textRect, DT_CENTER);
+			DrawTextW(hdc, timeText, -1, &timeRect, DT_CENTER);
+			DrawTextW(hdc, dateText, -1, &dateRect, DT_CENTER);
+			
+			//Restore the original font and clean updates
+			SelectObject(hdc, hOldFont);
+			DeleteObject(hFont);
 			
 			EndPaint(hwnd, &ps);
 			break;
