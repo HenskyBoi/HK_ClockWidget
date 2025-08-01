@@ -11,6 +11,7 @@
 //Define a constant for the menu item ID
 #define IDM_CLOSE_APP 1001
 
+
 /*=============================================================================
 *   ConstructFont [returns: HFONT* (pointer to HFONT)]
 *       Routine Description: Construct a font handle
@@ -27,7 +28,7 @@ HFONT* ConstructFont(wchar_t* typeface)
 
 	//malloc is a function that allocates memory and returns a pointer to it...
 
-	//allocate enough memory on the heap for an HFONT and store it in a new pointer named "result"
+	//allocate enough memory on the heap for an HFONT and store it's locaton in a new pointer named "result"
 	HFONT* result = malloc(sizeof(HFONT));
 
 	if(!result)
@@ -40,7 +41,9 @@ HFONT* ConstructFont(wchar_t* typeface)
 		return NULL;
 	}
 
-	//We call CreateFontW on HFONT result:
+	//We call CreateFontW on result
+	//since result is only a pointer to an HFONT and NOT an actual HFONT itself,
+	//we need to call CreateFontW on the HFONT that is being pointed to, we do this using a * before the pointer name
 	*result = CreateFontW
 			(
 				60,                              //Height in logical units (approx. point size)
@@ -176,15 +179,13 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	static RECT clientRect;
 
-	//Define a pointer (indicated by *) to a font handle
-	HFONT* myFont;
-	//set it equal to ConstructFont which allocates memory and creates the HFONT
-	myFont = ConstructFont(L"Arial");
-
 	switch(msg)
 	{
 		case WM_CREATE:
 		{
+		//set it equal to ConstructFont which allocates memory and creates the HFONT
+		myFont = ConstructFont(L"Arial");
+
 		//This sets a timer that triggers every 1000 milliseconds (1 second)
 		SetTimer(hwnd, 1, 1000, NULL);
 		break;
@@ -246,6 +247,7 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Free any resources allocated for the window here
 
 			//Because CreateFont uses malloc, we have to free it
+			DestroyObject(myFont);
 			DestroyFont(myFont);
 
 			PostQuitMessage(0);
@@ -272,14 +274,17 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			//Define the text rectangle based on the client area
 			RECT timeRect = {0, 0, clientRect.right, 120};
 			RECT dateRect = {0, 50, clientRect.right, 120};
-			
-			//Select the pointer to the font we constructed (*myFont) into the hdc
-			SelectObject(hdc, *myFont);
 
-			//Draw the time centered in the rectangle
-			DrawTextW(hdc, timeText, -1, &timeRect, DT_CENTER);
-			DrawTextW(hdc, dateText, -1, &dateRect, DT_CENTER);
-			
+			//Select the pointer to the font we constructed (*myFont) into the hdc
+			if(myFont)
+			{
+
+				SelectObject(hdc, *myFont);
+				//Draw the time centered in the rectangle
+				DrawTextW(hdc, timeText, -1, &timeRect, DT_CENTER);
+				DrawTextW(hdc, dateText, -1, &dateRect, DT_CENTER);
+			}
+
 			EndPaint(hwnd, &ps);
 			break;
 		}

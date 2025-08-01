@@ -21,6 +21,9 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 120
 
+//Define a pointer (indicated by *) to a font handle
+HFONT* myFont;
+
 /*=============================================================================
 * Function Prototypes
 =============================================================================*/
