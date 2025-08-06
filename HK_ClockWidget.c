@@ -8,13 +8,8 @@
 
 #include "HK_ClockWidget.h"
 
-//Define a constant for the menu item ID
-#define IDM_CLOSE_APP 1001
-#define IDM_ABOUT 1002
-#define IDM_MILITARY_TIME 1003
-
 /*=============================================================================
-*   ConstructFony [returns: HFONT* (pointer to HFONT)]
+*   ConstructFont [returns: HFONT* (pointer to HFONT)]
 *       Routine Description: Construct a font handle
 *
 *       wchar_t* typeface		Typeface name
@@ -121,7 +116,7 @@ int PASCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpsz
 	(
 		0,                      //dwExStyle
 		CLASS_NAME,             //lpClassName
-		L"HK_CLockWidget",      //lpWindowName (title bar text)
+		L"HK_ClockWidget",      //lpWindowName (title bar text)
 		WS_POPUP,               //dwStyle
 		CW_USEDEFAULT,          //X position
 		CW_USEDEFAULT,          //Y position
@@ -138,7 +133,7 @@ int PASCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpsz
 	(
 		0,                      //dwExStyle
 		CLASS_NAME,             //lpClassName
-		L"HK_CLockWidget",      //lpWindowName (title bar text)
+		L"HK_ClockWidget",      //lpWindowName (title bar text)
 		WS_POPUP,               //dwStyle
 		CW_USEDEFAULT,          //X position
 		CW_USEDEFAULT,          //Y position
