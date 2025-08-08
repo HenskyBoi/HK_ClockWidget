@@ -1,9 +1,9 @@
 /*=============================================================================
 * HK_ClockWidget.c
 ===============================================================================
-* Author: Henry King
-* Version: Beta 2.1
-* Release Date: 8/1/2025
+* Author: Henry King & Tim King
+* Version: Beta 2.1.1
+* Release Date: 8/8/2025
 =============================================================================*/
 
 #include "HK_ClockWidget.h"
@@ -175,6 +175,9 @@ int PASCAL WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevious, LPWSTR lpsz
 LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	HDC hdc;
+	HDC bufferDC;
+	HBITMAP preFrame;
+	HBITMAP postFrame;
 	PAINTSTRUCT ps;
 	static RECT clientRect;
 	static BOOL bMilitaryTime = FALSE; //Track military time state, default is set to standard time.
@@ -183,8 +186,11 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_CREATE:
 		{
-		//This sets a timer that triggers every 1000 milliseconds (1 second)
-		SetTimer(hwnd, 1, 1000, NULL);
+		//This sets a timer that triggers every 100 milliseconds.
+		//The reason why it's not 1000 milliseconds to match 1 second is because the timer would not sync up correctly with the windows clock.
+		//It still technically doesn't, but you would need to look really closely to notice.
+		//Making this number smaller would just cause unecessary stress to the cpu, so we need a good balance.
+		SetTimer(hwnd, 1, 100, NULL);
 		break;
 		}
 		case WM_SIZE:
@@ -198,7 +204,7 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_TIMER:
 		{
 			//Invalidate the entire window to trigger a repaint (updates the window)
-			InvalidateRect(hwnd, NULL, TRUE);
+			InvalidateRect(hwnd, NULL, FALSE);
 			break;
 		}
 		case WM_CONTEXTMENU:
@@ -240,7 +246,7 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						hwnd,                              //Handle to the owner window (NULL for no owner)
 						
 						//Message Text
-						L"HK_ClockWidget\nVersion Beta 2.1\nReleased August 1, 2025\nWritten by Henry King",
+						L"HK_ClockWidget\nVersion Beta 2.1.1\nReleased August 8, 2025\nWritten by Henry King & Tim King",
 						
 						L"About",                          //Title of the message box
 						MB_OK | MB_ICONINFORMATION         //Buttons and icon type
@@ -272,9 +278,14 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_PAINT:
 		{
+			//Initialize hdc and buffer dc/bitmaps
 			hdc = BeginPaint(hwnd, &ps);
+			bufferDC = CreateCompatibleDC(hdc);
+			postFrame = CreateCompatibleBitmap(hdc, WINDOW_WIDTH, WINDOW_HEIGHT);
+			preFrame = (HBITMAP)SelectObject(bufferDC, postFrame);
+			
 			//Fill the window background with a default gray color
-			FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
+			FillRect(bufferDC, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
 			
 			//Define a buffer for the time string
 			wchar_t timeText[25];
@@ -295,13 +306,24 @@ LRESULT WINAPI WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			
 			if(myFont)
 			{
-				//Select the pointer to the font we constructed (*myFont) into the hdc
-				SelectObject(hdc, *myFont);
+				//Select the pointer to the font we constructed (*myFont) into the bufferDC
+				SelectObject(bufferDC, *myFont);
 				
 				//Draw the time centered in the rectangle
-				DrawTextW(hdc, timeText, -1, &timeRect, DT_CENTER);
-				DrawTextW(hdc, dateText, -1, &dateRect, DT_CENTER);
+				DrawTextW(bufferDC, timeText, -1, &timeRect, DT_CENTER);
+				DrawTextW(bufferDC, dateText, -1, &dateRect, DT_CENTER);
 			}
+			
+			//Blit buffer to hdc
+			BitBlt(hdc, ps.rcPaint.left, ps.rcPaint.top,
+			ps.rcPaint.right - ps.rcPaint.left,
+			ps.rcPaint.bottom - ps.rcPaint.top,
+			bufferDC, ps.rcPaint.left, ps.rcPaint.top, SRCCOPY);
+			
+			//Clean up
+			SelectObject(bufferDC, preFrame);
+			DeleteObject(postFrame);
+			DeleteDC(bufferDC);
 			
 			EndPaint(hwnd, &ps);
 			break;
