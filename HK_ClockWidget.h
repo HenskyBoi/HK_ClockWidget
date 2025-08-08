@@ -21,6 +21,11 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 120
 
+//Menu ID constants
+#define IDM_CLOSE_APP 1001
+#define IDM_ABOUT 1002
+#define IDM_MILITARY_TIME 1003
+
 /*=============================================================================
 * Function Prototypes
 =============================================================================*/
